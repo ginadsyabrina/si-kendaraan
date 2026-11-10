@@ -4,177 +4,172 @@
 
 SI-Kendaraan adalah aplikasi berbasis web untuk mengelola data kendaraan
 dinas operasional, pegawai penanggung jawab, dan Perangkat Daerah (OPD).
-Aplikasi ini dikembangkan untuk membantu proses pencatatan, pemantauan,
-dan pengelolaan administrasi kendaraan dinas secara lebih terstruktur.
+Aplikasi ini membantu pencatatan, pemantauan, pengelolaan administrasi,
+serta penelusuran aktivitas perubahan data kendaraan.
+
+**Repository:**
+[ginadsyabrina/si-kendaraan](https://github.com/ginadsyabrina/si-kendaraan)
 
 ------------------------------------------------------------------------
 
-## 📌 Fitur Utama
+## 📌 Fitur Aplikasi
 
-### 1. Dashboard
+### 1. Dashboard Statistik
 
--   Menampilkan total kendaraan.
--   Menampilkan jumlah kendaraan dengan kondisi baik.
--   Menampilkan kendaraan yang memerlukan perhatian.
--   Menampilkan jumlah pegawai terdaftar.
--   Menampilkan ringkasan kendaraan terbaru.
+-   Menampilkan total kendaraan dan jumlah pegawai.
+-   Menampilkan ringkasan kondisi kendaraan: baik, rusak ringan, dan
+    rusak berat.
+-   Menampilkan ringkasan status kendaraan: aktif, tidak aktif, dan
+    dalam perbaikan.
+-   Menyediakan filter berdasarkan Perangkat Daerah (OPD).
+-   Menampilkan grafik kondisi kendaraan, status kendaraan, jumlah
+    kendaraan per OPD, dan jumlah pegawai per OPD.
+-   Menampilkan daftar kendaraan terbaru.
 
 ### 2. Manajemen Data Kendaraan
 
--   Menambahkan, melihat, mengubah, dan menghapus data kendaraan.
--   Pencarian berdasarkan nomor polisi, merek, tipe/model kendaraan, dan
-    pegawai.
--   Filter berdasarkan kondisi kendaraan.
--   Mengelola status kendaraan.
+-   Tambah, lihat, ubah, dan hapus data kendaraan sesuai hak akses.
+-   Pencarian data kendaraan.
+-   Validasi kolom wajib, tahun produksi, kondisi, dan status.
+-   Validasi nomor polisi agar tidak kosong atau duplikat; format nomor
+    polisi dinormalisasi sebelum pemeriksaan.
+-   Menghubungkan kendaraan dengan pegawai penanggung jawab yang
+    terdaftar.
 
 ### 3. Manajemen Data Pegawai
 
--   Menambahkan, melihat, mengubah, dan menghapus data pegawai.
--   Pencarian berdasarkan nama, NIP, jabatan, golongan, dan lokasi
-    kerja.
+-   Tambah, lihat, ubah, dan hapus data pegawai sesuai hak akses.
+-   Pencarian data pegawai.
+-   Validasi kolom wajib, NIP duplikat, dan keterkaitan dengan OPD.
 -   Menghubungkan pegawai dengan Perangkat Daerah.
 
 ### 4. Manajemen Perangkat Daerah (OPD)
 
--   Menambahkan, melihat, mengubah, dan menghapus data OPD.
--   Pencarian berdasarkan kode OPD, nama perangkat daerah, dan alamat.
--   Mengelola status perangkat daerah.
+-   Tambah, lihat, ubah, dan hapus data OPD sesuai hak akses.
+-   Pencarian data OPD.
+-   Validasi kode OPD dan nama OPD agar tidak duplikat.
+-   Mengelola status aktif dan tidak aktif.
+
+### 5. Autentikasi dan Manajemen Pengguna
+
+-   Login dan logout menggunakan akun terdaftar.
+-   Akun dibuat oleh Administrator melalui data pegawai yang sudah
+    terdaftar; tidak tersedia pendaftaran mandiri.
+-   Satu pegawai hanya dapat memiliki satu akun.
+-   Pengaturan peran pengguna: `administrator`, `inputer`, dan `viewer`.
+-   Administrator dapat mengelola akun, peran, dan status akun.
+-   Password disimpan dalam bentuk hash menggunakan mekanisme password
+    hashing PHP.
+-   Sesi pengguna berakhir otomatis setelah 15 menit tidak aktif.
+
+**Hak akses pengguna:**
+
+  -----------------------------------------------------------------------
+  Peran                               Hak akses
+  ----------------------------------- -----------------------------------
+  `administrator`                     Akses penuh, termasuk mengelola
+                                      akun serta tambah, lihat, ubah, dan
+                                      hapus data.
+
+  `inputer`                           Melihat, menambah, dan mengubah
+                                      data; tidak dapat menghapus data
+                                      atau mengelola akun.
+
+  `viewer`                            Hanya dapat melihat data.
+  -----------------------------------------------------------------------
+
+Hak akses diperiksa pada backend, bukan hanya dengan menyembunyikan menu
+pada frontend.
+
+### 6. Audit Log / Riwayat Aktivitas
+
+-   Mencatat aktivitas login dan logout serta perubahan data.
+-   Mencatat pengguna, peran, modul, jenis aktivitas, waktu, alamat IP,
+    dan deskripsi.
+-   Merekam snapshot data sebelum dan sesudah perubahan untuk aktivitas
+    yang mendukungnya.
+-   Menyediakan pencarian dan filter riwayat aktivitas.
+-   Menyediakan filter rentang tanggal.
+-   Mendukung ekspor riwayat aktivitas ke CSV yang dapat dibuka dengan
+    aplikasi spreadsheet.
+-   Halaman Audit Log hanya tersedia untuk Administrator.
+
+### 7. Riwayat Perubahan Kendaraan
+
+-   Menampilkan timeline aktivitas berdasarkan kendaraan yang dipilih.
+-   Menampilkan aktivitas tambah, edit, dan hapus yang tercatat pada
+    Audit Log.
+-   Menampilkan pengguna, waktu aktivitas, dan detail perubahan.
+-   Detail perubahan menampilkan perbandingan data sebelum dan sesudah
+    perubahan jika tersedia.
+
+**Catatan:** Riwayat yang ditampilkan bergantung pada catatan Audit Log
+yang tersedia. Log lama sebelum pencatatan snapshot diterapkan mungkin
+tidak memiliki detail sebelum/sesudah.
 
 ------------------------------------------------------------------------
 
 ## 🛠️ Teknologi yang Digunakan
 
-  Teknologi      Kegunaan
-  -------------- ---------------------------------------------
-  React.js       Pengembangan antarmuka frontend
-  JavaScript     Logika aplikasi frontend
-  Vite           Development server dan build frontend
-  PHP            Backend dan REST-style API
-  MySQL          Penyimpanan database
-  XAMPP          Lingkungan pengembangan lokal
-  CSS            Styling antarmuka
-  Git & GitHub   Version control dan penyimpanan source code
-
-------------------------------------------------------------------------
-
-## 🤖 Penggunaan Artificial Intelligence (AI)
-
-AI digunakan sebagai alat bantu selama proses perencanaan, pembelajaran,
-pengembangan, debugging, dan dokumentasi SI-Kendaraan.
-
-### Model AI yang Digunakan
-
--   **Platform:** ChatGPT
--   **Model:** **GPT-6**
--   **Penyedia:** OpenAI
--   **Peran:** Asisten AI untuk membantu proses pengembangan aplikasi.
-
-Keterangan versi model ini mengacu pada model ChatGPT yang digunakan
-saat penyusunan dokumentasi ini. Jika model yang digunakan pada sesi
-pengembangan lain berbeda, versi tersebut perlu dicatat secara terpisah
-agar dokumentasi tetap akurat.
-
-### Bentuk Pemanfaatan AI
-
-1.  **Analisis kebutuhan**
-    -   Membantu merumuskan kebutuhan modul kendaraan, pegawai, dan OPD.
-    -   Membantu menyusun daftar fitur seperti tambah, lihat, ubah,
-        hapus, pencarian, dan filter.
-    -   Membantu membagi pekerjaan menjadi tahapan yang lebih mudah
-        dikerjakan.
-2.  **Pembelajaran teknologi**
-    -   Meminta penjelasan konsep React.js, JavaScript, PHP, MySQL, API,
-        Git, dan GitHub.
-    -   Memahami struktur folder serta alur komunikasi frontend,
-        backend, dan database.
-    -   Mendapatkan contoh penerapan konsep pemrograman.
-3.  **Bantuan penulisan kode**
-    -   Membantu menyusun dan memperbaiki contoh komponen React.
-    -   Membantu memahami endpoint PHP untuk pengelolaan data.
-    -   Membantu memahami query SQL dan relasi antartabel.
-    -   Memberikan saran validasi input dan penanganan respons API.
-4.  **Debugging dan pemecahan masalah**
-    -   Membantu menganalisis pesan error dari Terminal, browser, PHP,
-        dan React.
-    -   Menjelaskan kemungkinan penyebab masalah.
-    -   Memberikan langkah pemeriksaan dan perbaikan secara bertahap.
-5.  **Dokumentasi dan version control**
-    -   Membantu menyusun dokumentasi proyek dan README.
-    -   Memberikan panduan penggunaan Git dan GitHub.
-    -   Membantu menyiapkan deskripsi fitur dan rencana pengembangan.
-
-### Contoh Pemanfaatan AI
-
-Contoh instruksi yang dapat digunakan selama pengembangan: - "Jelaskan
-cara kerja state dan komponen React pada halaman Data Kendaraan." -
-"Bantu analisis error PHP pada endpoint kendaraan." - "Buat contoh API
-PHP untuk pencarian data pegawai menggunakan MySQL." - "Jelaskan cara
-menghubungkan React.js dengan API PHP." - "Bantu periksa alur tambah,
-edit, dan hapus data tanpa menghilangkan fitur yang sudah berjalan." -
-"Jelaskan langkah mengunggah project ke GitHub."
-
-Contoh tersebut menggambarkan jenis bantuan yang dapat diberikan AI dan
-bukan klaim bahwa seluruh instruksi tersebut telah digunakan.
-
-### Verifikasi dan Tanggung Jawab Developer
-
-Setiap saran atau kode yang dihasilkan AI harus ditinjau dan diuji
-sebelum digunakan. Pemeriksaan meliputi: - Memastikan kode sesuai dengan
-kebutuhan dan struktur proyek. - Memeriksa sintaks JavaScript dan PHP. -
-Menguji endpoint API dan koneksi database. - Menguji proses tambah,
-lihat, ubah, dan hapus data. - Memastikan pencarian dan filter
-memberikan hasil yang sesuai. - Memastikan perubahan tidak menghilangkan
-fitur yang sudah berfungsi. - Tidak memasukkan password, token, API key,
-atau data pribadi ke dalam prompt AI. - Tidak mengunggah kredensial atau
-data sensitif ke repository publik.
-
-AI dapat menghasilkan jawaban yang keliru, tidak lengkap, atau tidak
-sesuai dengan lingkungan proyek. AI tidak menggantikan pemahaman,
-pengujian, maupun tanggung jawab developer.
-
-### Pernyataan Penggunaan AI
-
-Dalam pengembangan SI-Kendaraan, ChatGPT dengan model GPT-6 digunakan
-sebagai alat bantu untuk pembelajaran, analisis, penyusunan kode,
-pemecahan masalah, dan dokumentasi. Saran AI ditinjau dan diuji kembali
-sebelum diterapkan. Integrasi, pengujian, pemeliharaan, dan tanggung
-jawab atas hasil akhir aplikasi tetap berada pada developer.
+  Teknologi         Kegunaan
+  ----------------- ---------------------------------------------
+  React.js          Pengembangan antarmuka frontend
+  JavaScript        Logika aplikasi frontend
+  Vite              Development server dan build frontend
+  PHP               Backend dan API
+  MySQL / MariaDB   Penyimpanan database
+  XAMPP             Lingkungan pengembangan lokal
+  CSS               Styling antarmuka
+  Git & GitHub      Version control dan penyimpanan source code
 
 ------------------------------------------------------------------------
 
 ## 📂 Struktur Project
 
+Struktur utama proyek saat ini:
+
 ``` text
 si-kendaraan/
-│
 ├── backend/
 │   ├── koneksi.php
 │   ├── kendaraan.php
 │   ├── pegawai.php
-│   └── opd.php
-│
+│   ├── opd.php
+│   ├── auth.php
+│   ├── auth_guard.php
+│   ├── audit_helper.php
+│   ├── audit_logs.php
+│   ├── database_users.sql
+│   ├── audit_logs.sql
+│   └── audit_logs_detail_migration.sql
 ├── src/
-│   ├── pages/
-│   │   └── Pegawai.jsx
+│   ├── components/
+│   │   └── dashboard/
+│   │       └── Dashboard.jsx
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── style.css
-│
 ├── index.html
 ├── package.json
 ├── .gitignore
 └── README.md
 ```
 
-*Struktur di atas merupakan gambaran struktur utama proyek. File lain
-dapat ditambahkan sesuai perkembangan aplikasi.*
+Struktur di atas menggambarkan file utama yang digunakan. File
+konfigurasi atau komponen lain dapat ditambahkan seiring perkembangan
+aplikasi.
 
 ------------------------------------------------------------------------
 
 ## ⚙️ Persyaratan Sistem
 
-Pastikan perangkat sudah memiliki: - Node.js dan npm. - PHP 8 atau versi
-yang kompatibel. - MySQL. - XAMPP. - Git.
+Pastikan perangkat telah memiliki:
+
+-   Node.js dan npm.
+-   PHP 8 atau versi yang kompatibel dengan kode backend.
+-   MySQL atau MariaDB.
+-   XAMPP atau lingkungan server PHP/MySQL yang setara.
+-   Git.
 
 ------------------------------------------------------------------------
 
@@ -198,24 +193,34 @@ cd si-kendaraan
 npm install
 ```
 
-### 4. Konfigurasi Database
+### 4. Siapkan Database
 
 1.  Jalankan Apache dan MySQL melalui XAMPP.
-2.  Buka phpMyAdmin di `http://localhost/phpmyadmin`.
-3.  Buat database dengan nama:
+2.  Buka phpMyAdmin melalui `http://localhost/phpmyadmin`.
+3.  Buat database bernama:
 
 ``` text
 db_kendaraan_dinas
 ```
 
-4.  Import struktur database dan data awal yang telah disiapkan. File
-    database tidak disertakan dalam repository apabila berisi data
-    pribadi atau sensitif.
+4.  Siapkan tabel inti aplikasi (`kendaraan`, `pegawai`, dan
+    `perangkat_daerah`) sesuai skema proyek.
+5.  Import file skema/migrasi yang tersedia di folder `backend` sesuai
+    kebutuhan dan urutan penerapannya:
+    -   `database_users.sql` untuk struktur tabel akun pengguna.
+    -   `audit_logs.sql` untuk struktur tabel Audit Log.
+    -   `audit_logs_detail_migration.sql` untuk menambahkan dukungan
+        snapshot sebelum/sesudah pada Audit Log.
+
+> File SQL skema/migrasi ditujukan untuk menyiapkan struktur database.
+> Backup database operasional yang berisi data pengguna atau data
+> pribadi tidak boleh diunggah ke repository publik. Lakukan backup
+> database secara terpisah dan simpan di lokasi yang aman.
 
 ### 5. Konfigurasi Koneksi PHP
 
-Periksa file `backend/koneksi.php` dan sesuaikan konfigurasi database
-lokal:
+Periksa `backend/koneksi.php` dan sesuaikan konfigurasi database lokal.
+Contoh konfigurasi:
 
 ``` php
 $host = "localhost";
@@ -224,56 +229,174 @@ $password = "";
 $database = "db_kendaraan_dinas";
 ```
 
-Sesuaikan username dan password dengan konfigurasi MySQL pada perangkat
-masing-masing. Jangan menyimpan kredensial produksi di repository
-publik.
+Sesuaikan username dan password dengan konfigurasi MySQL/MariaDB pada
+perangkat masing-masing. Jangan menyimpan kredensial produksi, password,
+token, atau API key di repository publik.
 
-### 6. Jalankan Aplikasi React
+### 6. Jalankan Backend
+
+Pastikan Apache dan MySQL aktif di XAMPP. Dengan struktur folder proyek
+di `htdocs`, endpoint backend dapat diakses melalui alamat lokal,
+misalnya:
+
+``` text
+http://localhost/sikendaraan/backend/kendaraan.php
+```
+
+### 7. Jalankan Frontend React
+
+Dari folder utama proyek, jalankan:
 
 ``` bash
 npm run dev
 ```
 
-Buka browser di:
+Buka alamat yang ditampilkan Vite, biasanya:
 
 ``` text
 http://localhost:5173
 ```
 
-### 7. Akses Backend API
+------------------------------------------------------------------------
 
-Endpoint API yang tersedia:
+## 🔌 Endpoint Backend
 
-  Modul              Endpoint
-  ------------------ ------------------------------------------------------
-  Kendaraan          `http://localhost/sikendaraan/backend/kendaraan.php`
-  Pegawai            `http://localhost/sikendaraan/backend/pegawai.php`
-  Perangkat Daerah   `http://localhost/sikendaraan/backend/opd.php`
+  -------------------------------------------------------------------------------------------
+  Modul                               Endpoint
+  ----------------------------------- -------------------------------------------------------
+  Kendaraan                           `http://localhost/sikendaraan/backend/kendaraan.php`
+
+  Pegawai                             `http://localhost/sikendaraan/backend/pegawai.php`
+
+  Perangkat Daerah                    `http://localhost/sikendaraan/backend/opd.php`
+
+  Autentikasi dan akun                `http://localhost/sikendaraan/backend/auth.php`
+
+  Audit Log                           `http://localhost/sikendaraan/backend/audit_logs.php`
+  -------------------------------------------------------------------------------------------
+
+Endpoint tertentu memerlukan sesi login dan hak akses yang sesuai.
 
 ------------------------------------------------------------------------
 
-## 🗄️ Database
+## 🗄️ Struktur Database
 
-Database menggunakan MySQL dengan tiga tabel utama:
+Database `db_kendaraan_dinas` menggunakan tabel utama berikut:
 
-1.  `kendaraan` -- menyimpan informasi kendaraan dinas.
-2.  `pegawai` -- menyimpan informasi pegawai penanggung jawab.
-3.  `perangkat_daerah` -- menyimpan informasi organisasi perangkat
-    daerah.
+  -----------------------------------------------------------------------
+  Tabel                               Kegunaan
+  ----------------------------------- -----------------------------------
+  `kendaraan`                         Menyimpan informasi kendaraan dinas
+                                      dan pegawai penanggung jawab.
+
+  `pegawai`                           Menyimpan informasi pegawai dan
+                                      relasinya dengan OPD.
+
+  `perangkat_daerah`                  Menyimpan informasi organisasi
+                                      perangkat daerah.
+
+  `users`                             Menyimpan akun login, relasi
+                                      pegawai, peran, dan status akun.
+
+  `audit_logs`                        Menyimpan catatan aktivitas dan
+                                      perubahan data.
+  -----------------------------------------------------------------------
 
 Relasi antartabel menggunakan foreign key untuk menghubungkan kendaraan
-dengan pegawai dan pegawai dengan perangkat daerah.
+dengan pegawai dan pegawai dengan perangkat daerah. Tabel pengguna
+menghubungkan akun dengan data pegawai.
+
+------------------------------------------------------------------------
+
+## 🔐 Keamanan dan Pengelolaan Data
+
+-   Akses API dilindungi pemeriksaan sesi dan peran pengguna.
+-   Sesi berakhir setelah 15 menit tidak aktif.
+-   Password akun disimpan dalam bentuk hash, bukan teks biasa.
+-   Validasi data dilakukan pada backend.
+-   Jangan mengunggah file backup database operasional ke repository
+    publik.
+-   Jangan memasukkan password, hash password, NIP, token, atau data
+    pribadi ke dalam dokumentasi publik.
+-   Simpan backup aplikasi dan database di lokasi terpisah yang aman.
+-   Setelah melakukan perubahan skema database, lakukan backup terlebih
+    dahulu dan uji migrasi pada lingkungan pengembangan.
+
+------------------------------------------------------------------------
+
+## 🧪 Pemeriksaan Setelah Instalasi
+
+Setelah aplikasi dijalankan, lakukan pemeriksaan berikut:
+
+1.  Pastikan frontend dapat dibuka.
+2.  Pastikan koneksi backend ke database berhasil.
+3.  Uji login dan logout.
+4.  Uji hak akses Administrator, Inputer, dan Viewer.
+5.  Uji tambah, lihat, ubah, dan hapus data sesuai hak akses.
+6.  Uji validasi nomor polisi, NIP, kode OPD, dan nama OPD duplikat.
+7.  Uji pencarian dan filter dashboard.
+8.  Uji pencatatan Audit Log dan detail perubahan.
+9.  Uji ekspor Audit Log ke CSV.
+10. Uji logout otomatis setelah 15 menit tidak aktif.
 
 ------------------------------------------------------------------------
 
 ## 🔄 Rencana Pengembangan Selanjutnya
 
--   Sistem autentikasi dan login pengguna.
--   Hak akses Administrator dan User.
--   Laporan data kendaraan.
--   Export data ke Excel dan PDF.
--   Riwayat pemeliharaan kendaraan.
--   Dashboard statistik yang lebih lengkap.
+Fitur berikut dapat menjadi prioritas pada pengembangan versi
+berikutnya:
+
+-   Modul pemeliharaan dan servis kendaraan.
+-   Jadwal servis berkala dan pengingat perawatan.
+-   Pencatatan biaya pemeliharaan kendaraan.
+-   Upload foto kendaraan dan dokumen pendukung.
+-   Laporan kendaraan dan ekspor ke Excel/PDF.
+-   Pengembangan laporan dan analisis dashboard.
+
+------------------------------------------------------------------------
+
+## 🤖 Penggunaan Artificial Intelligence (AI)
+
+AI digunakan sebagai alat bantu selama proses perencanaan, pembelajaran,
+pengembangan, debugging, dan dokumentasi SI-Kendaraan.
+
+### Model AI yang Digunakan
+
+-   **Platform:** ChatGPT
+-   **Model:** GPT-6
+-   **Penyedia:** OpenAI
+-   **Peran:** Asisten AI untuk membantu proses pengembangan aplikasi.
+
+Keterangan model mengacu pada model ChatGPT yang digunakan saat
+penyusunan dokumentasi ini. Model yang digunakan pada sesi pengembangan
+lain dapat berbeda.
+
+### Bentuk Pemanfaatan AI
+
+1.  **Analisis kebutuhan:** membantu merumuskan kebutuhan modul, fitur,
+    dan tahapan pekerjaan.
+2.  **Pembelajaran teknologi:** membantu memahami React.js, JavaScript,
+    PHP, MySQL, API, Git, dan GitHub.
+3.  **Bantuan penulisan kode:** membantu menyusun dan memperbaiki
+    komponen React, endpoint PHP, query SQL, validasi, dan penanganan
+    respons API.
+4.  **Debugging:** membantu menganalisis pesan error dari Terminal,
+    browser, PHP, dan React serta menyusun langkah pemeriksaan.
+5.  **Dokumentasi dan version control:** membantu menyusun README,
+    dokumentasi fitur, dan panduan Git/GitHub.
+
+### Verifikasi dan Tanggung Jawab Developer
+
+Setiap saran atau kode yang dihasilkan AI harus ditinjau dan diuji
+sebelum digunakan. Pengujian mencakup sintaks, koneksi database,
+endpoint API, hak akses, validasi, serta proses CRUD. AI dapat
+menghasilkan jawaban yang keliru atau tidak lengkap dan tidak
+menggantikan pemahaman, pengujian, maupun tanggung jawab developer.
+
+Dalam pengembangan SI-Kendaraan, ChatGPT digunakan sebagai alat bantu
+pembelajaran, analisis, penyusunan kode, pemecahan masalah, dan
+dokumentasi. Integrasi, pengujian, pemeliharaan, dan tanggung jawab atas
+hasil akhir aplikasi tetap berada pada developer.
 
 ------------------------------------------------------------------------
 
@@ -281,7 +404,7 @@ dengan pegawai dan pegawai dengan perangkat daerah.
 
 **Gina Devita Syabrina**
 
-**Project:** SI-Kendaraan -- Sistem Informasi Kendaraan Dinas
+**Project:** SI-Kendaraan --- Sistem Informasi Kendaraan Dinas
 Operasional\
 **GitHub:** [ginadsyabrina](https://github.com/ginadsyabrina)\
 **Repository:**
