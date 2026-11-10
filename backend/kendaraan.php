@@ -1,6 +1,7 @@
 
 <?php
 header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json; charset=UTF-8");
@@ -11,6 +12,8 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 }
 
 require_once "koneksi.php";
+require_once "auth_guard.php";
+require_once "audit_helper.php";
 
 $method = $_SERVER["REQUEST_METHOD"];
 $data = json_decode(file_get_contents("php://input"), true) ?? [];
@@ -87,17 +90,26 @@ try {
             }
         }
 
-        $nomor = strtoupper(trim($data["nomor_polisi"]));
-        $merek = trim($data["merek"]);
-        $tipe = trim($data["tipe_model"]);
-        $tahun = (int)$data["tahun_produksi"];
-        $warna = trim($data["warna"]);
-        $kondisi = $data["kondisi"];
-        $status = $data["status"];
+        // Normalisasi input sebelum validasi dan penyimpanan.
+        $nomor = strtoupper(trim((string)$data["nomor_polisi"]));
+        $nomor = preg_replace('/\s+/', ' ', $nomor);
+        $merek = trim((string)$data["merek"]);
+        $tipe = trim((string)$data["tipe_model"]);
+        $warna = trim((string)$data["warna"]);
+        $kondisi = trim((string)$data["kondisi"]);
+        $status = trim((string)$data["status"]);
 
-        if ($tahun < 1901 || $tahun > 2155) {
-            responseKendaraan(false, "Tahun produksi tidak valid.", null, 422);
+        // Nomor polisi menerima huruf, angka, dan spasi; panjang 3-15 karakter.
+        if (!preg_match('/^[A-Z0-9 ]{3,15}$/', $nomor)) {
+            responseKendaraan(false, "Format nomor polisi tidak valid. Gunakan huruf, angka, dan spasi saja.", null, 422);
         }
+
+        // Pastikan tahun benar-benar bilangan bulat dan sesuai tipe YEAR MySQL.
+        $tahunInput = filter_var($data["tahun_produksi"], FILTER_VALIDATE_INT);
+        if ($tahunInput === false || $tahunInput < 1901 || $tahunInput > 2155) {
+            responseKendaraan(false, "Tahun produksi harus berupa angka antara 1901 dan 2155.", null, 422);
+        }
+        $tahun = (int)$tahunInput;
 
         if (!in_array($kondisi, $kondisiValid, true)) {
             responseKendaraan(false, "Kondisi kendaraan tidak valid.", null, 422);
@@ -107,9 +119,14 @@ try {
             responseKendaraan(false, "Status kendaraan tidak valid.", null, 422);
         }
 
-        $pegawaiId = !empty($data["pegawai_id"])
-            ? (int)$data["pegawai_id"]
-            : null;
+        $pegawaiId = null;
+        if (isset($data["pegawai_id"]) && $data["pegawai_id"] !== "" && $data["pegawai_id"] !== null) {
+            $pegawaiInput = filter_var($data["pegawai_id"], FILTER_VALIDATE_INT);
+            if ($pegawaiInput === false || $pegawaiInput <= 0) {
+                responseKendaraan(false, "ID pegawai penanggung jawab tidak valid.", null, 422);
+            }
+            $pegawaiId = (int)$pegawaiInput;
+        }
 
         if ($pegawaiId !== null) {
             $check = $conn->prepare("SELECT id FROM pegawai WHERE id = ?");
@@ -119,6 +136,29 @@ try {
             if ($check->get_result()->num_rows === 0) {
                 responseKendaraan(false, "Pegawai penanggung jawab tidak ditemukan.", null, 422);
             }
+        }
+
+        // Untuk edit, pastikan ID kendaraan valid sebelum memeriksa duplikasi.
+        $id = null;
+        if ($method === "PUT") {
+            $idInput = filter_var($_GET["id"] ?? null, FILTER_VALIDATE_INT);
+            if ($idInput === false || $idInput === null || $idInput <= 0) {
+                responseKendaraan(false, "ID kendaraan tidak valid.", null, 400);
+            }
+            $id = (int)$idInput;
+        }
+
+        // Cek nomor polisi yang sama, dengan mengecualikan record yang sedang diedit.
+        if ($method === "POST") {
+            $duplicateStmt = $conn->prepare("SELECT id FROM kendaraan WHERE UPPER(TRIM(nomor_polisi)) = ? LIMIT 1");
+            $duplicateStmt->bind_param("s", $nomor);
+        } else {
+            $duplicateStmt = $conn->prepare("SELECT id FROM kendaraan WHERE UPPER(TRIM(nomor_polisi)) = ? AND id <> ? LIMIT 1");
+            $duplicateStmt->bind_param("si", $nomor, $id);
+        }
+        $duplicateStmt->execute();
+        if ($duplicateStmt->get_result()->num_rows > 0) {
+            responseKendaraan(false, "Nomor polisi sudah terdaftar.", null, 409);
         }
 
         if ($method === "POST") {
@@ -136,19 +176,27 @@ try {
             );
 
             $stmt->execute();
+            $newId = $conn->insert_id;
+            $afterStmt = $conn->prepare("SELECT * FROM kendaraan WHERE id = ?");
+            $afterStmt->bind_param("i", $newId);
+            $afterStmt->execute();
+            $afterData = $afterStmt->get_result()->fetch_assoc();
+            writeAuditLog($conn, "Tambah", "Kendaraan", $newId, "Nomor polisi " . $nomor, null, $afterData);
 
             responseKendaraan(
                 true,
                 "Kendaraan berhasil ditambahkan.",
-                ["id" => $conn->insert_id],
+                ["id" => $newId],
                 201
             );
         }
 
-        $id = (int)($_GET["id"] ?? 0);
-
-        if ($id <= 0) {
-            responseKendaraan(false, "ID kendaraan tidak valid.", null, 400);
+        $beforeStmt = $conn->prepare("SELECT * FROM kendaraan WHERE id = ?");
+        $beforeStmt->bind_param("i", $id);
+        $beforeStmt->execute();
+        $beforeData = $beforeStmt->get_result()->fetch_assoc();
+        if (!$beforeData) {
+            responseKendaraan(false, "Data kendaraan tidak ditemukan.", null, 404);
         }
 
         $stmt = $conn->prepare("
@@ -171,6 +219,11 @@ try {
         );
 
         $stmt->execute();
+        $afterStmt = $conn->prepare("SELECT * FROM kendaraan WHERE id = ?");
+        $afterStmt->bind_param("i", $id);
+        $afterStmt->execute();
+        $afterData = $afterStmt->get_result()->fetch_assoc();
+        writeAuditLog($conn, "Edit", "Kendaraan", $id, "Nomor polisi " . $nomor, $beforeData, $afterData);
 
         responseKendaraan(true, "Data kendaraan berhasil diperbarui.");
     }
@@ -182,6 +235,14 @@ try {
             responseKendaraan(false, "ID kendaraan tidak valid.", null, 400);
         }
 
+        $beforeStmt = $conn->prepare("SELECT * FROM kendaraan WHERE id = ?");
+        $beforeStmt->bind_param("i", $id);
+        $beforeStmt->execute();
+        $beforeData = $beforeStmt->get_result()->fetch_assoc();
+        if (!$beforeData) {
+            responseKendaraan(false, "Data kendaraan tidak ditemukan.", null, 404);
+        }
+
         $stmt = $conn->prepare("DELETE FROM kendaraan WHERE id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -189,6 +250,7 @@ try {
         if ($stmt->affected_rows === 0) {
             responseKendaraan(false, "Data kendaraan tidak ditemukan.", null, 404);
         }
+        writeAuditLog($conn, "Hapus", "Kendaraan", $id, "Menghapus data kendaraan", $beforeData, null);
 
         responseKendaraan(true, "Data kendaraan berhasil dihapus.");
     }
